@@ -1,9 +1,11 @@
+cat > server.py <<'PY'
 import os
 import hashlib
 from contextvars import ContextVar
 
 import uvicorn
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 EMAIL = "23f1001770@ds.study.iitm.ac.in"
 challenge_var = ContextVar("exam_challenge", default="")
@@ -18,10 +20,8 @@ mcp = FastMCP(
 def solve_challenge() -> str:
     """Hash the challenge received in the HTTP request headers."""
     challenge = challenge_var.get()
-
     if len(challenge) != 32:
         raise ValueError("Missing or invalid X-Exam-Challenge header")
-
     return hashlib.sha256(
         f"{challenge}:{EMAIL}".encode("utf-8")
     ).hexdigest()[:16]
@@ -37,16 +37,29 @@ class HeaderMiddleware:
             return
 
         headers = dict(scope.get("headers", []))
-        challenge = headers.get(b"x-exam-challenge", b"").decode("ascii")
+        challenge = headers.get(
+            b"x-exam-challenge", b""
+        ).decode("ascii")
         token = challenge_var.set(challenge)
-
         try:
             await self.app(scope, receive, send)
         finally:
             challenge_var.reset(token)
 
 
-app = HeaderMiddleware(mcp.streamable_http_app())
+app = HeaderMiddleware(
+    mcp.streamable_http_app(
+        transport_security=TransportSecuritySettings(
+            allowed_hosts=[
+                "tds-mcp-server-9rr1.onrender.com",
+                "tds-mcp-server-9rr1.onrender.com:*",
+            ],
+            allowed_origins=[
+                "https://tds-mcp-server-9rr1.onrender.com",
+            ],
+        )
+    )
+)
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -54,3 +67,4 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.environ.get("PORT", "8000")),
     )
+PY
