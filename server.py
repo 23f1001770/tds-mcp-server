@@ -4,13 +4,14 @@ from contextvars import ContextVar
 
 import uvicorn
 from mcp.server.fastmcp import FastMCP
-from mcp.server.transport_security import TransportSecuritySettings
+
 
 EMAIL = "23f1001770@ds.study.iitm.ac.in"
 challenge_var = ContextVar("exam_challenge", default="")
 
 mcp = FastMCP(
     "TDS Challenge Server",
+    host="0.0.0.0",    
     stateless_http=True,
     json_response=True,
 )
