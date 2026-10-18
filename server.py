@@ -50,13 +50,7 @@ class HeaderMiddleware:
 app = HeaderMiddleware(
     mcp.streamable_http_app(
         transport_security=TransportSecuritySettings(
-            allowed_hosts=[
-                "tds-mcp-server-9rr1.onrender.com",
-                "tds-mcp-server-9rr1.onrender.com:*",
-            ],
-            allowed_origins=[
-                "https://tds-mcp-server-9rr1.onrender.com",
-            ],
+            enable_dns_rebinding_protection=False,
         )
     )
 )
