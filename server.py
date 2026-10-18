@@ -47,13 +47,9 @@ class HeaderMiddleware:
 
 
 app = HeaderMiddleware(
-    mcp.streamable_http_app(
-        transport_security=TransportSecuritySettings(
-            enable_dns_rebinding_protection=False,
-        )
-    )
+    mcp.streamable_http_app()
 )
-
+   
 if __name__ == "__main__":
     uvicorn.run(
         app,
